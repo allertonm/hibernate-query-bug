@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.8.22"
-    kotlin("plugin.allopen") version "1.8.22"
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.allopen") version "1.8.21"
     id("io.quarkus")
 }
 
@@ -29,8 +29,8 @@ group = "com.example"
 version = "1.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks.withType<Test> {
@@ -43,6 +43,6 @@ allOpen {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
     kotlinOptions.javaParameters = true
 }
