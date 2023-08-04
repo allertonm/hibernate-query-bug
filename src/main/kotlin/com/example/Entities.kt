@@ -8,18 +8,18 @@ import java.util.*
 
 @Entity
 @Table(name = "bar")
-class BarEntity {
+open class BarEntity {
     @Id
     @GeneratedValue
     @Column(name = "id", unique = true, nullable = false)
-    var entityId: UUID? = null
+    open var entityId: UUID? = null
 
     @Column(nullable = false)
-    var displayName: String? = null
+    open var displayName: String? = null
 
     @Column(columnDefinition = "JSONB")
     @Convert(converter = FooConverter::class)
-    var foo: Foo? = null
+    open var foo: Foo? = null
 }
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
