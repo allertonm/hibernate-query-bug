@@ -1,66 +1,31 @@
 # hibernate-query-bug
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This project demonstrates a bug in Quarkus 3.1 that causes the error "HR000069: Detected use of the reactive Session from a different Thread" when two simultaneous requests are received.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+This bug does not appear to be reproducible on Quarkus 3.2, but there do not appear to be any closed issues related to HR000069 that affect 3.2 but not 3.1.
 
-## Running the application in dev mode
+The reproduction requires the following...
+1. A persisted entity (BarEntity in this example) with a field whose value is an instance of a class (Foo2, here) that does not implement equals/hashcode
+2. An endpoint that queries for that entity twice in succession within the same session
 
-You can run your application in dev mode that enables live coding using:
+To reproduce the problem, checkout the `quarkus-3.1` branch and run the application using `./gradlew quarkusDev` (requires a Postgres server with a DB "bug_test" on localhost:5432)
 
-```shell script
-./gradlew quarkusDev
+In a shell session, create the entity...
+```
+% curl http://localhost:8083/create2 
+Created 01f9f686-f47a-44e0-9727-d58cb3c54216%
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+Copy the UUID written to stdout and then...
 
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./gradlew build
+```
+seq 1 100 | xargs -P2 -Iname curl http://localhost:8083/read/9f99c6da-98a0-49dc-ba08-79601f5fe7d3
 ```
 
-It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
+You should hit HR000069 almost immediately, usually on the first two requests.
 
-The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
+You will not hit this error if, instead of using `create2`, you use `create1` or `create3`, which set the value of `BarEntity.foo` to be either a Kotlin data class instance or an instance of a class with `equals` and `hashCode` implemnented.
 
-If you want to build an _über-jar_, execute the following command:
+The `main` branch of this repo uses Quarkus 3.2 and also does not exhibit this problem.
 
-```shell script
-./gradlew build -Dquarkus.package.type=uber-jar
-```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./gradlew build -Dquarkus.package.type=native
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./build/hibernate-query-bug-1.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
-
-## Related Guides
-
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
-
-## Provided Code
-
-### RESTEasy Reactive
-
-Easily start your Reactive RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
